@@ -1,0 +1,27 @@
+import { chromium } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+
+await mkdir('test-results', { recursive: true });
+const browser = await chromium.launch({ executablePath: process.env.BROWSER_PATH || (process.platform === 'win32' ? 'C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe' : undefined), headless: true, args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--no-sandbox'] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
+page.on('pageerror', error => console.log('PAGE ERROR', error.message));
+page.on('console', message => { if (message.type() === 'error') console.log('CONSOLE ERROR', message.text()); });
+page.on('response', response => { if (response.status() >= 400) console.log('HTTP ERROR', response.status(), response.url()); });
+await page.goto('http://127.0.0.1:4173');
+await page.waitForSelector('.pumpkin-viewport.is-ready', { timeout: 20000 });
+await page.screenshot({ path: 'test-results/intro-mobile.png', fullPage: true });
+const canvas = await page.locator('.pumpkin-canvas').boundingBox();
+await page.mouse.move(canvas.x + canvas.width * .38, canvas.y + canvas.height * .45);
+await page.mouse.down();
+await page.mouse.move(canvas.x + canvas.width * .62, canvas.y + canvas.height * .5, { steps: 24 });
+await page.mouse.up();
+await page.waitForTimeout(250);
+await page.screenshot({ path: 'test-results/carved-mobile.png', fullPage: true });
+await page.getByRole('button', { name: 'Enter the party', exact: true }).click();
+await page.waitForSelector('.invitation-home');
+await page.waitForTimeout(1100);
+await page.screenshot({ path: 'test-results/home-mobile.png', fullPage: true });
+await page.setViewportSize({ width: 1440, height: 1000 });
+await page.screenshot({ path: 'test-results/home-desktop.png', fullPage: true });
+console.log(JSON.stringify({ title: await page.title(), overflow: await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), audio: await page.locator('.sound-button').getAttribute('aria-label') }));
+await browser.close();
