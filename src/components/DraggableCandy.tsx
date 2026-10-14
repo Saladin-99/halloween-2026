@@ -49,7 +49,7 @@ export function DraggableCandy({ candy, index, onPop, onRecycle }: {
     if (!active || !element || (pointer !== undefined && pointer !== active.pointer)) return;
     drag.current = null;
     suppressClick.current = cancelled || active.moved;
-    if (active.moved) resumeFromDrop(element);
+    resumeFromDrop(element);
     element.classList.remove('held');
     if (element.hasPointerCapture(active.pointer)) element.releasePointerCapture(active.pointer);
   };
@@ -74,6 +74,10 @@ export function DraggableCandy({ candy, index, onPop, onRecycle }: {
       cancelAnimationFrame(restartFrame.current); restartFrame.current = 0;
       element.style.animation = ''; element.style.transform = '';
     }
+    // A CSS pause can reach the compositor a frame after pointerdown. Freeze the
+    // displayed transform before measuring the grab, so that frame cannot drift.
+    element.style.transform = getComputedStyle(element).transform;
+    element.style.animation = 'none';
     element.classList.add('held');
     const rect = element.getBoundingClientRect();
     const bounds = element.parentElement!.getBoundingClientRect();

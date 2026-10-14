@@ -1,4 +1,4 @@
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Locator, type Page } from '@playwright/test';
 
 const errors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -9,6 +9,32 @@ test.afterEach(async ({ page }) => { expect(errors.get(page)).toEqual([]); });
 
 async function seed(page: Page, value = 0.5) {
   await page.addInitScript(value => { Math.random = () => value; }, value);
+}
+
+type PointerSample = { centerX: number; centerY: number; pointerX: number; pointerY: number };
+
+async function observePointerPositions(target: Locator) {
+  await target.page().evaluate(() => document.fonts.ready);
+  await target.evaluate(element => {
+    const record = (event: PointerEvent) => {
+      if (!element.contains(event.target as Node)) return;
+      const box = element.getBoundingClientRect();
+      // Document bubbling runs after React's handler, in the same input event.
+      // A later protocol round trip can sample a different animation frame.
+      element.setAttribute(`data-test-${event.type}`, JSON.stringify({
+        centerX: box.left + box.width / 2, centerY: box.top + box.height / 2,
+        pointerX: event.clientX, pointerY: event.clientY,
+      }));
+    };
+    document.addEventListener('pointerdown', record);
+    document.addEventListener('pointerup', record);
+  });
+}
+
+async function pointerSample(target: Locator, type: 'pointerdown' | 'pointerup'): Promise<PointerSample> {
+  const sample = await target.getAttribute(`data-test-${type}`);
+  expect(sample).not.toBeNull();
+  return JSON.parse(sample!);
 }
 
 test('candy is spread across the full page width including the center', async ({ page }) => {
@@ -80,6 +106,7 @@ test('dragging on a scrolled page preserves the drop point and continues to the 
   const candy = page.locator('.falling-candy').nth(3);
   const id = await candy.getAttribute('data-candy-id');
   const target = page.locator(`[data-candy-id="${id}"]`);
+  await observePointerPositions(target);
   await target.evaluate((element: HTMLElement) => {
     // Hold a known page position so pointerdown cannot race a falling sprite.
     element.style.animation = 'none'; element.style.top = '600px';
@@ -101,9 +128,10 @@ test('dragging on a scrolled page preserves the drop point and continues to the 
   expect(held.y + held.height / 2).toBeCloseTo(340, 0);
   await page.mouse.up();
   await expect(target).not.toHaveClass(/held|popped/);
+  const release = await pointerSample(target, 'pointerup');
+  expect(release.centerX).toBeCloseTo(210, 0);
+  expect(release.centerY).toBeCloseTo(340, 0);
   const dropped = (await target.boundingBox())!;
-  expect(dropped.x + dropped.width / 2).toBeCloseTo(210, 0);
-  expect(dropped.y + dropped.height / 2).toBeCloseTo(340, 0);
   await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThan(dropped.y + 8);
   const height = await page.locator('.candy-rain').evaluate(element => element.clientHeight);
   await target.evaluate(element => {
@@ -116,27 +144,38 @@ test('dragging on a scrolled page preserves the drop point and continues to the 
 
 test('mouse drag moves a falling candy, resumes at the drop point and does not pop it', async ({ page }) => {
   await seed(page); await page.goto('/?view=home');
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 4 });
   await expect(page.locator('.falling-candy')).toHaveCount(8);
   const candy = page.locator('.falling-candy').nth(3);
   const id = await candy.getAttribute('data-candy-id');
   const target = page.locator(`[data-candy-id="${id}"]`);
+  await observePointerPositions(target);
   const box = (await target.boundingBox())!;
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await expect(target).toHaveClass(/held/);
-  const grabbed = (await target.boundingBox())!;
-  // The candy keeps falling between measuring its box and pointerdown. Preserve
-  // the actual grab offset rather than assuming the pointer hit its exact center.
-  const expectedX = 250 + grabbed.x + grabbed.width / 2 - (box.x + box.width / 2);
-  const expectedY = 450 + grabbed.y + grabbed.height / 2 - (box.y + box.height / 2);
+  const grabbed = await pointerSample(target, 'pointerdown');
+  const settled = await target.evaluate(async element => {
+    await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+    const box = element.getBoundingClientRect();
+    return { centerX: box.left + box.width / 2, centerY: box.top + box.height / 2 };
+  });
+  // Catch the compositor's extra frame even before the pointer starts moving.
+  expect(settled.centerX).toBeCloseTo(grabbed.centerX, 0);
+  expect(settled.centerY).toBeCloseTo(grabbed.centerY, 0);
+  const expectedX = 250 + grabbed.centerX - grabbed.pointerX;
+  const expectedY = 450 + grabbed.centerY - grabbed.pointerY;
   await page.mouse.move(250, 450, { steps: 12 });
   const held = (await target.boundingBox())!;
   expect(held.x + held.width / 2).toBeCloseTo(expectedX, 0);
   expect(held.y + held.height / 2).toBeCloseTo(expectedY, 0);
   await page.mouse.up();
   await expect(target).not.toHaveClass(/held|popped/);
+  const release = await pointerSample(target, 'pointerup');
+  expect(release.centerX).toBeCloseTo(expectedX, 0);
+  expect(release.centerY).toBeCloseTo(expectedY, 0);
   const dropped = (await target.boundingBox())!;
-  expect(dropped.x + dropped.width / 2).toBeCloseTo(expectedX, 0);
   await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThan(dropped.y + 8);
   const moving = (await target.boundingBox())!;
   expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('data-candy-id'), { x: moving.x + moving.width / 2, y: moving.y + moving.height / 2 })).toBe(id);
