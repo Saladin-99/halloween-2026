@@ -83,6 +83,7 @@ p { line-height: 1.6; }
 .enter-button { width: 100%; margin-top: 12px; }
 .enter-button.unrevealed { visibility: hidden; pointer-events: none; }
 .skip-link { min-height: 44px; padding: 12px 8px; font-size: 11px; background: none; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; text-decoration-color: #d2c2e64a; }
+.skip-slot { min-height: 44px; }
 .desktop-hint { margin: 0; color: #a794ba; font-size: 10px; }
 .storage-note { font-size: 11px; color: var(--muted); }
 @media (pointer: coarse) { .desktop-hint { display: none; } }
@@ -90,7 +91,7 @@ p { line-height: 1.6; }
 /* An invitation around the complete, uncropped square artwork. */
 .invitation-home { min-height: 100svh; position: relative; overflow: clip; padding: max(37px, env(safe-area-inset-top)) 12px max(90px, calc(env(safe-area-inset-bottom) + 70px)); background: radial-gradient(ellipse at 50% 32%, #56315425, transparent 65%); }
 .invitation-shell { max-width: 620px; margin: 0 auto; }
-.home-header { text-align: center; position: relative; z-index: 7; margin-bottom: 26px; }
+.home-header { text-align: center; position: relative; z-index: 7; margin-bottom: 26px; pointer-events: none; }
 .home-header .eyebrow { font-size: 11px; letter-spacing: 4px; }
 .home-header h1 { margin: 16px 0 20px; }
 .title-line { display: block; font-size: clamp(42px, 12.8vw, 78px); line-height: .96; letter-spacing: -2.8px; font-weight: 700; }
@@ -123,9 +124,10 @@ p { line-height: 1.6; }
 .drinks-sign { width: 20px; height: 25px; background: #654321ed; color: #ffe1aa; border: 1px solid #c69d64; border-radius: 4px; transform: translate(-50%,-50%) rotate(5deg); }
 .drinks-sign .icon { width: 15px; height: 19px; }
 .byob-sign { font-size: 7px; letter-spacing: 1px; font-weight: 700; color: #ffe2a5; background: #55361f; border: 1px solid #c99251; padding: 4px 5px; border-radius: 2px; box-shadow: 0 3px 4px #0008; }
-.explore-note { position: relative; z-index: 7; font-size: 10px; color: #bbaaC9; text-align: center; margin: 12px 0 24px; display: flex; gap: 6px; justify-content: center; align-items: center; }
+.explore-note { position: relative; z-index: 7; font-size: 10px; color: #bbaaC9; text-align: center; margin: 12px 0 24px; display: flex; gap: 6px; justify-content: center; align-items: center; pointer-events: none; }
 .explore-note .icon { width: 12px; height: 12px; color: #d9aa76; }
-.event-details { position: relative; z-index: 7; padding: 0 12px; }
+.event-details { position: relative; z-index: 7; padding: 0 12px; pointer-events: none; }
+.event-details a { pointer-events: auto; }
 .date-time-row { display: flex; justify-content: center; align-items: center; gap: 30px; padding: 0 0 22px; border-bottom: 1px solid var(--line); }
 .date-time-row > div { display: flex; align-items: center; gap: 13px; min-width: 90px; }
 .date-time-row > div > .icon { width: 19px; height: 19px; color: #c398cc; }
@@ -143,16 +145,17 @@ p { line-height: 1.6; }
 .countdown-numbers { display: flex; justify-content: center; gap: 24px; margin-top: 12px; }
 .countdown-numbers strong { display: block; font-size: 27px; color: var(--amber); font-variant-numeric: tabular-nums; }
 .countdown-numbers span { display: block; font-size: 9px; color: var(--muted); margin-top: 3px; }
-.home-actions { position: relative; z-index: 7; text-align: center; padding: 0 12px; }
+.home-actions { position: relative; z-index: 7; text-align: center; padding: 0 12px; pointer-events: none; }
+.home-actions button, .home-actions a { pointer-events: auto; }
 .rsvp-button { width: 100%; }
 .rsvp-button .icon:first-child { margin-right: auto; }
 .rsvp-note { color: #c5accf; font-size: 10px; margin: 11px 0 12px; }
-.back-button { display: inline-flex; gap: 9px; align-items: center; justify-content: center; min-height: 44px; background: transparent; color: var(--muted); font-size: 11px; }
-.back-button .icon { width: 15px; height: 15px; }
-.sound-button { position: fixed; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 8px; min-width: 44px; height: 44px; padding: 0 13px; background: #251a39ed; color: #e8d8ef; border: 1px solid #a286bd50; border-radius: 24px; box-shadow: 0 4px 18px #0003; backdrop-filter: blur(12px); }
-.sound-button span { font-size: 10px; }
-@media (max-width: 700px) { .sound-button span { display: none; } .sound-button { padding: 0; width: 44px; justify-content: center; } }
-.sound-button .icon { width: 17px; height: 17px; }
+.floating-control { position: fixed; bottom: max(16px, env(safe-area-inset-bottom)); z-index: 30; display: flex; align-items: center; gap: 8px; min-width: 44px; height: 44px; padding: 0 13px; background: #251a39ed; color: #e8d8ef; border: 1px solid #a286bd50; border-radius: 24px; box-shadow: 0 4px 18px #0003; backdrop-filter: blur(12px); }
+.sound-button { right: max(16px, env(safe-area-inset-right)); }
+.pumpkin-return-button { left: max(16px, env(safe-area-inset-left)); }
+.floating-control span { font-size: 10px; }
+.floating-control .icon { width: 17px; height: 17px; }
+@media (max-width: 700px) { .floating-control span { display: none; } .floating-control { padding: 0; width: 44px; justify-content: center; } }
 .scene-toast { position: fixed; z-index: 35; bottom: max(75px, calc(env(safe-area-inset-bottom) + 60px)); left: 50%; transform: translateX(-50%); width: max-content; max-width: calc(100vw - 28px); display: flex; align-items: center; gap: 9px; padding: 4px 4px 4px 16px; background: #372142f5; border: 1px solid #e3b46c66; border-radius: 12px; box-shadow: 0 8px 30px #0006; font-size: 12px; }
 .scene-toast > .icon { color: var(--amber); width: 16px; height: 16px; }
 .scene-toast .icon-button { flex: 0 0 44px; }
@@ -161,10 +164,20 @@ p { line-height: 1.6; }
 
 /* Atlas sprites use transforms rather than per-frame layout or a physics engine. */
 .candy-rain { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
-.falling-candy { position: absolute; left: var(--x); top: -50px; width: 44px; height: 44px; padding: 0; background: none; border-radius: 50%; pointer-events: auto; animation: candy-fall var(--duration) var(--delay) linear forwards; will-change: transform; }
+.falling-candy { position: absolute; left: calc((100% - 44px) * var(--x)); top: -50px; width: 44px; height: 44px; padding: 0; background: none; border-radius: 50%; pointer-events: auto; touch-action: none; cursor: grab; animation: candy-fall var(--duration) var(--delay) linear forwards; will-change: transform; }
+.falling-candy.was-dragged { z-index: 1; }
+.falling-candy.held, .falling-candy:focus-visible { animation-play-state: paused; z-index: 2; }
+.falling-candy.held { cursor: grabbing; }
 .candy-sprite { display: block; width: var(--size); height: var(--size); margin: auto; background-repeat: no-repeat; background-size: 900% 100%; filter: drop-shadow(1px 4px 3px #0003); transition: transform .13s, opacity .15s; }
 .falling-candy:hover .candy-sprite { transform: scale(1.12); }
-.gold-candy .candy-sprite { filter: drop-shadow(0 0 7px #ffd44d99); }
+.gold-candy::before { content: ''; position: absolute; inset: -12px; border-radius: 50%; background: radial-gradient(circle, #ffec8580, #ffc13d28 45%, transparent 72%); box-shadow: 0 0 18px #ffc13d38; animation: gold-aura 2.4s ease-in-out infinite; pointer-events: none; }
+.gold-candy .candy-sprite { position: relative; filter: brightness(1.22) saturate(1.3) drop-shadow(0 0 5px #fff1a5) drop-shadow(0 0 12px #ffb82ee6); }
+.gold-sparkles { position: absolute; inset: -6px; pointer-events: none; }
+.gold-sparkles i { position: absolute; width: 11px; height: 11px; background: #fff8cd; clip-path: polygon(50% 0, 61% 37%, 100% 50%, 61% 61%, 50% 100%, 37% 61%, 0 50%, 37% 37%); filter: drop-shadow(0 0 4px #ffdb5a); animation: gold-glint 2.4s ease-in-out infinite; }
+.gold-sparkles i:nth-child(1) { top: 0; right: 2px; }
+.gold-sparkles i:nth-child(2) { bottom: 4px; left: 0; width: 8px; height: 8px; animation-delay: -.8s; }
+.gold-sparkles i:nth-child(3) { top: 20px; right: -3px; width: 6px; height: 6px; animation-delay: -1.6s; }
+.gold-candy.popped::before, .popped .gold-sparkles { opacity: 0; animation: none; }
 .popped { pointer-events: none; }
 .popped .candy-sprite { transform: scale(1.4,.25); opacity: 0; }
 .pop-sparkle { position: absolute; inset: 0; display: grid; place-items: center; color: #ffe4a1; font-size: 32px; animation: pop-glint .45s ease-out both; }
@@ -191,7 +204,9 @@ p { line-height: 1.6; }
 @keyframes hint-pulse { 50% { opacity: .3; } }
 @keyframes venue-reveal { from { opacity: .2; filter: blur(5px); transform: scale(1.012); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
 @keyframes paw-float { from { opacity: 0; transform: translateY(5px) scale(.7); } 20% { opacity: 1; } to { opacity: 0; transform: translateY(-25px) scale(1); } }
-@keyframes candy-fall { from { transform: translate3d(0,-40px,0) rotate(-25deg); } to { transform: translate3d(var(--drift),calc(100dvh + 100px),0) rotate(180deg); } }
+@keyframes candy-fall { from { transform: translate3d(0,var(--fall-start, -40px),0) rotate(var(--start-angle, -25deg)); } to { transform: translate3d(var(--drift),var(--fall-distance, calc(100dvh + 100px)),0) rotate(var(--end-angle, 180deg)); } }
+@keyframes gold-aura { 50% { opacity: .6; transform: scale(.85); } }
+@keyframes gold-glint { 0%,100% { opacity: .4; transform: scale(.65) rotate(0deg); } 50% { opacity: 1; transform: scale(1.2) rotate(35deg); } }
 @keyframes ghost-drift { 0% { opacity: 0; transform: translate(0,10px); } 10%,80% { opacity: .85; } 50% { transform: translate(110px,-10px); } 100% { opacity: 0; transform: translate(210px,-35px); } }
 @keyframes pop-glint { from { opacity: 1; transform: scale(.5); } to { opacity: 0; transform: scale(1.8) rotate(30deg); } }
 @keyframes transition-in { from { opacity: 0; } to { opacity: 1; } }
@@ -227,6 +242,7 @@ p { line-height: 1.6; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .candy-rain.reduced .falling-candy { animation: none !important; }
+  .gold-candy::before, .gold-sparkles i { animation: none; }
   .scene-card { animation: none; }
   .transition-words span { animation: none; }
 }

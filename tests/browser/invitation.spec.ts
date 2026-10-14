@@ -1,6 +1,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import sharp from 'sharp';
 import { keys } from '../../src/lib/storage';
+import { siteContent } from '../../src/config/siteContent';
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
@@ -37,6 +38,8 @@ test('entry is silent, first stroke reveals tools immediately, and carving remai
   await page.mouse.move(box.x + box.width * .45, box.y + box.height * .48);
   await page.mouse.down();
   await expect(page.getByRole('button', { name: 'Enter the party', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Go to home', exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Skip carving and open invitation', exact: true })).toHaveCount(0);
   await page.mouse.up();
   for (let i = 0; i < 10; i++) await carve(page, (i % 3) * .04);
   expect((await saved(page)).strokes.length).toBe(11);
@@ -120,6 +123,8 @@ test('first entry starts one audio instance; return preserves carving, time and 
   await page.getByRole('button', { name: 'Back to pumpkin', exact: true }).click();
   expect(await saved(page)).toEqual(drawing);
   await expect(page.getByRole('button', { name: 'Play music', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Enter the party', exact: true })).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Go to home', exact: true })).toHaveCount(1);
   await page.getByRole('button', { name: 'Go to home', exact: true }).click();
   await expect(page.locator('.invitation-home')).toBeVisible();
   expect(await page.evaluate(() => (window as any).__audio.length)).toBe(1);
@@ -165,7 +170,7 @@ test('home placeholders, hotspot dialogs, candy and gold secrets work without fa
   // Stop the decorative fall at its current position to test an actual hit target.
   await page.locator('.gold-candy').evaluate((button: HTMLElement) => { button.style.animation = 'none'; button.style.top = '300px'; button.style.left = '5px'; });
   await page.getByRole('button', { name: 'You found something good.' }).click();
-  await expect(page.getByText('See you there.')).toBeVisible();
+  await expect(page.getByText(siteContent.copy.environment.rareCandyMessages[0], { exact: true })).toBeVisible();
   await expect(page.locator('.gold-candy.popped')).toHaveCount(1);
 });
 

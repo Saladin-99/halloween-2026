@@ -110,7 +110,8 @@ export const siteContent = {
       playlistAction: 'Add to the playlist',
       playlistPlaceholderNote: 'Playlist invite coming soon',
       goldCandyHint: 'You found something good.',
-      candyHint: 'Pop a candy',
+      candyHint: 'Drag or tap a candy',
+      candyInstruction: 'Drag to move. Tap to pop.',
       ghostMessage: 'Ana el mesee5 el daggal, 3ayez a3mel el 7elw w a5od el candy bta3y.',
       rareCandyMessages: [
         'Mabrook kesebt m3ana el candy el rare, leek 5% discount, use code: RARECANDY5.',
@@ -165,6 +166,8 @@ export const siteContent = {
     exportResolution: 1024,
     reducedTransitionMs: 200,
     candySpawnMs: 1100,
+    candyDragThresholdPx: 6,
+    candyPopMs: 500,
     ghostDelayMs: 24000,
     messageDurationMs: 3800,
     sceneHotspots: {

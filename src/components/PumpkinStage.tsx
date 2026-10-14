@@ -77,7 +77,7 @@ export function PumpkinStage({ active, visited, onEnter }: { active: boolean; vi
         </div>}
       </div>
       <button className={`primary-button enter-button ${revealed ? '' : 'unrevealed'}`} aria-hidden={!revealed} inert={!revealed} onClick={onEnter}>{visited ? c.copy.intro.goHome : c.copy.intro.enter}<Icon name="arrow" /></button>
-      <button className="skip-link" onClick={onEnter}>{revealed ? (visited ? c.copy.intro.enter : c.copy.intro.goHome) : c.copy.intro.accessibleSkip}</button>
+      <div className="skip-slot">{!revealed && <button className="skip-link" onClick={onEnter}>{c.copy.intro.accessibleSkip}</button>}</div>
       <p className="desktop-hint">{c.copy.intro.desktopHint}</p>
       <p className="sr-only" role="status">{message}</p>
       {!status.storageAvailable && <p className="storage-note">{c.copy.intro.storageUnavailable}</p>}

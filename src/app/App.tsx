@@ -57,8 +57,9 @@ export function App() {
   const audioLabel = audio.status === 'playing' ? c.copy.home.audioMute : audio.status === 'blocked' ? c.copy.home.audioBlocked : c.copy.home.audioUnmute;
   return <>
     {pumpkinMounted && <PumpkinStage active={view === 'pumpkin'} visited={visited} onEnter={enter} />}
-    {view === 'home' && <InvitationHome reduced={reduced} onBack={() => setRoute('pumpkin')} />}
-    {visited && <button className="sound-button" aria-label={audioLabel} onClick={audio.toggle} title={audioLabel} aria-pressed={audio.status === 'playing'}><Icon name={audio.status === 'playing' ? 'sound' : 'mute'} /><span>{audio.status === 'playing' ? c.copy.home.audioPlaying : audio.status === 'blocked' ? c.copy.home.audioBlocked : c.copy.home.audioOff}</span></button>}
+    {view === 'home' && <InvitationHome reduced={reduced} />}
+    {view === 'home' && <button className="floating-control pumpkin-return-button" aria-label={c.copy.home.backToPumpkin} title={c.copy.home.backToPumpkin} onClick={() => setRoute('pumpkin')}><Icon name="pumpkin" /><span>{c.copy.home.backToPumpkin}</span></button>}
+    {visited && <button className="floating-control sound-button" aria-label={audioLabel} onClick={audio.toggle} title={audioLabel} aria-pressed={audio.status === 'playing'}><Icon name={audio.status === 'playing' ? 'sound' : 'mute'} /><span>{audio.status === 'playing' ? c.copy.home.audioPlaying : audio.status === 'blocked' ? c.copy.home.audioBlocked : c.copy.home.audioOff}</span></button>}
     {transition && <TransitionOverlay duration={transition.duration} quick={transition.quick} reduced={reduced} />}
   </>;
 }

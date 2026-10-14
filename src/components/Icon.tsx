@@ -1,5 +1,6 @@
-type Name = 'arrow' | 'back' | 'sound' | 'mute' | 'carve' | 'erase' | 'undo' | 'reset' | 'save' | 'rotate' | 'pin' | 'headphones' | 'close' | 'moon' | 'paw' | 'sparkle' | 'smoke' | 'bottle' | 'whatsapp' | 'calendar' | 'clock';
+type Name = 'arrow' | 'back' | 'sound' | 'mute' | 'carve' | 'erase' | 'undo' | 'reset' | 'save' | 'rotate' | 'pin' | 'headphones' | 'close' | 'moon' | 'paw' | 'sparkle' | 'smoke' | 'bottle' | 'whatsapp' | 'calendar' | 'clock' | 'pumpkin';
 const paths: Record<Name, React.ReactNode> = {
+  pumpkin: <><path d="M12 7c-1-3 0-5 3-5M12 8C2 3-2 20 9 21h6C26 20 22 3 12 8Z" /><ellipse cx="12" cy="14" rx="4" ry="7" /></>,
   arrow: <path d="M5 12h14m-5-5 5 5-5 5" />,
   back: <path d="M19 12H5m5-5-5 5 5 5" />,
   sound: <><path d="m11 4-6 5H2v6h3l6 5V4Zm4 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14" /></>,
