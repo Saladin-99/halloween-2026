@@ -89,6 +89,7 @@ export const siteContent = {
       audioMute: 'Mute music',
       audioUnmute: 'Play music',
       audioBlocked: 'Tap to play music',
+      audioUnavailable: 'Music coming soon',
       edition: 'The backyard is calling',
       titleLines: ['Ma3moora', 'Halloween', 'follow-up attempt'],
       explore: 'A few things here are worth a tap',
@@ -135,7 +136,8 @@ export const siteContent = {
     pumpkinGlb: '/assets/pumpkin-carvable.glb',
     pumpkinFallback: '/assets/pumpkin-fallback.svg',
     candyAtlas: '/assets/candy-atlas.webp',
-    ambientAudio: '/assets/audio/placeholder-ambient.mp3',
+    // Add tracks inside public/assets/audio/. The build discovers this folder automatically.
+    ambientAudioFolder: '/assets/audio',
     soundEffects: {
       candyPop: '',
       carving: '',

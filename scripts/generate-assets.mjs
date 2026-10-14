@@ -8,7 +8,6 @@ await mkdir(resolve(output, 'audio'), { recursive: true });
 for (const file of ['backyard-selected-master.png', 'backyard-scene-480.webp', 'backyard-scene-800.webp', 'backyard-scene-1254.webp']) {
   await copyFile(resolve('assets', file), resolve(output, file));
 }
-await copyFile(resolve('assets/audio/placeholder-ambient.mp3'), resolve(output, 'audio/placeholder-ambient.mp3'));
 await copyFile(resolve('node_modules/@fontsource/space-grotesk/LICENSE'), resolve(output, 'space-grotesk-OFL.txt'));
 
 // Authored lobed squash, with a depressed crown, asymmetry, fine ribbing and a curled stem.

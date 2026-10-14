@@ -2,9 +2,11 @@ import { test, expect, type Page } from '@playwright/test';
 import sharp from 'sharp';
 import { keys } from '../../src/lib/storage';
 import { siteContent } from '../../src/config/siteContent';
+import { installAmbientTracks } from './audioFixtures';
 
 const browserErrors = new WeakMap<Page, string[]>();
 test.beforeEach(async ({ page }) => {
+  await installAmbientTracks(page, ['test-ambient.mp3']);
   const errors: string[] = []; browserErrors.set(page, errors);
   page.on('pageerror', error => errors.push(error.message));
 });
@@ -119,6 +121,7 @@ test('first entry starts one audio instance; return preserves carving, time and 
   expect(await page.evaluate(() => (window as any).__audio.length)).toBe(1);
   await expect(page.locator('.invitation-home')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Mute music', exact: true })).toBeVisible();
+  expect(await page.evaluate(key => localStorage.getItem(key), keys.mute)).toBe('false');
   await page.getByRole('button', { name: 'Mute music', exact: true }).click();
   await page.getByRole('button', { name: 'Back to pumpkin', exact: true }).click();
   expect(await saved(page)).toEqual(drawing);

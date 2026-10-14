@@ -31,14 +31,19 @@ test('mouse drag moves a falling candy, resumes at the drop point and does not p
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
   await expect(target).toHaveClass(/held/);
+  const grabbed = (await target.boundingBox())!;
+  // The candy keeps falling between measuring its box and pointerdown. Preserve
+  // the actual grab offset rather than assuming the pointer hit its exact center.
+  const expectedX = 250 + grabbed.x + grabbed.width / 2 - (box.x + box.width / 2);
+  const expectedY = 450 + grabbed.y + grabbed.height / 2 - (box.y + box.height / 2);
   await page.mouse.move(250, 450, { steps: 12 });
   const held = (await target.boundingBox())!;
-  expect(held.x + held.width / 2).toBeCloseTo(250, 0);
-  expect(held.y + held.height / 2).toBeCloseTo(450, 0);
+  expect(held.x + held.width / 2).toBeCloseTo(expectedX, 0);
+  expect(held.y + held.height / 2).toBeCloseTo(expectedY, 0);
   await page.mouse.up();
   await expect(target).not.toHaveClass(/held|popped/);
   const dropped = (await target.boundingBox())!;
-  expect(dropped.x + dropped.width / 2).toBeCloseTo(250, 0);
+  expect(dropped.x + dropped.width / 2).toBeCloseTo(expectedX, 0);
   await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThan(dropped.y + 8);
   const moving = (await target.boundingBox())!;
   expect(await page.evaluate(({ x, y }) => document.elementFromPoint(x, y)?.closest('button')?.getAttribute('data-candy-id'), { x: moving.x + moving.width / 2, y: moving.y + moving.height / 2 })).toBe(id);

@@ -1,0 +1,1 @@
+`ambient.mp3` is the original synthesized development loop supplied with this project. It is kept as a browser-test fixture outside `public/`, so replacing the published soundtrack does not affect audio regression tests. It is not deployed to GitHub Pages.
