@@ -163,7 +163,7 @@ p { line-height: 1.6; }
 .scene-ghost svg { width: 100%; height: 100%; filter: drop-shadow(0 0 12px #ddd0ff66); }
 
 /* Atlas sprites use transforms rather than per-frame layout or a physics engine. */
-.candy-rain { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.candy-rain { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
 .falling-candy { position: absolute; left: calc((100% - 44px) * var(--x)); top: -50px; width: 44px; height: 44px; padding: 0; background: none; border-radius: 50%; pointer-events: auto; touch-action: none; cursor: grab; animation: candy-fall var(--duration) var(--delay) linear forwards; will-change: transform; }
 .falling-candy.was-dragged { z-index: 1; }
 .falling-candy.held, .falling-candy:focus-visible { animation-play-state: paused; z-index: 2; }
@@ -204,7 +204,7 @@ p { line-height: 1.6; }
 @keyframes hint-pulse { 50% { opacity: .3; } }
 @keyframes venue-reveal { from { opacity: .2; filter: blur(5px); transform: scale(1.012); } to { opacity: 1; filter: blur(0); transform: scale(1); } }
 @keyframes paw-float { from { opacity: 0; transform: translateY(5px) scale(.7); } 20% { opacity: 1; } to { opacity: 0; transform: translateY(-25px) scale(1); } }
-@keyframes candy-fall { from { transform: translate3d(0,var(--fall-start, -40px),0) rotate(var(--start-angle, -25deg)); } to { transform: translate3d(var(--drift),var(--fall-distance, calc(100dvh + 100px)),0) rotate(var(--end-angle, 180deg)); } }
+@keyframes candy-fall { from { transform: translate3d(0,var(--fall-start, -40px),0) rotate(var(--start-angle, -25deg)); } to { transform: translate3d(var(--drift),var(--fall-distance, calc(var(--rain-height, 0px) + 100px)),0) rotate(var(--end-angle, 180deg)); } }
 @keyframes gold-aura { 50% { opacity: .6; transform: scale(.85); } }
 @keyframes gold-glint { 0%,100% { opacity: .4; transform: scale(.65) rotate(0deg); } 50% { opacity: 1; transform: scale(1.2) rotate(35deg); } }
 @keyframes ghost-drift { 0% { opacity: 0; transform: translate(0,10px); } 10%,80% { opacity: .85; } 50% { transform: translate(110px,-10px); } 100% { opacity: 0; transform: translate(210px,-35px); } }

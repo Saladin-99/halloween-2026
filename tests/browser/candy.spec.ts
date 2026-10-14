@@ -11,7 +11,7 @@ async function seed(page: Page, value = 0.5) {
   await page.addInitScript(value => { Math.random = () => value; }, value);
 }
 
-test('candy is spread across the full viewport including the center', async ({ page }) => {
+test('candy is spread across the full page width including the center', async ({ page }) => {
   await seed(page); await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/?view=home');
   await expect(page.locator('.falling-candy')).toHaveCount(4);
@@ -19,6 +19,99 @@ test('candy is spread across the full viewport including the center', async ({ p
   expect(Math.min(...xs)).toBeLessThan(60);
   expect(Math.max(...xs)).toBeGreaterThan(280);
   expect(xs.filter(x => x > 100 && x < 270)).toHaveLength(2);
+});
+
+test('scrolling moves candy with the page instead of pinning it to the viewport', async ({ page }) => {
+  await seed(page); await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 390, height: 600 });
+  await page.goto('/?view=home');
+  const candy = page.locator('.falling-candy').first();
+  await expect(page.locator('.falling-candy')).toHaveCount(4);
+  const before = (await candy.boundingBox())!;
+  const field = await page.locator('.candy-rain').boundingBox();
+  const home = await page.locator('.invitation-home').boundingBox();
+  expect(field).toEqual(home);
+  expect(field!.height).toBeGreaterThan(600);
+  await page.evaluate(() => window.scrollTo(0, 160));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(160);
+  const after = (await candy.boundingBox())!;
+  expect(after.y + 160).toBeCloseTo(before.y, 1);
+  expect(after.x).toBeCloseTo(before.x, 1);
+  expect(await candy.getAttribute('data-candy-id')).toBe('0');
+});
+
+test('candy falls below the first screen and follows the page bottom as content grows', async ({ page }) => {
+  await seed(page); await page.setViewportSize({ width: 390, height: 600 });
+  await page.goto('/?view=home');
+  await expect(page.locator('.falling-candy')).toHaveCount(8);
+  const candy = page.locator('.falling-candy').nth(3);
+  const id = await candy.getAttribute('data-candy-id');
+  const target = page.locator(`[data-candy-id="${id}"]`);
+  await target.evaluate(element => {
+    const fall = element.getAnimations().find(animation => (animation as CSSAnimation).animationName === 'candy-fall')!;
+    const timing = fall.effect!.getTiming();
+    fall.pause(); fall.currentTime = (timing.delay ?? 0) + Number(timing.duration) * .8;
+  });
+  const below = (await target.boundingBox())!;
+  const height = await page.locator('.candy-rain').evaluate(element => element.clientHeight);
+  expect(below.y).toBeGreaterThan(600);
+  expect(below.y + below.height).toBeLessThan(height);
+  await page.evaluate(y => window.scrollTo(0, y - 300), below.y);
+  await expect(target).toBeInViewport();
+  // Content reflow must update the fall boundary without tying it to scrolling.
+  await page.locator('.home-actions').evaluate((element: HTMLElement) => { element.style.paddingBottom = '320px'; });
+  await expect.poll(() => page.locator('.candy-rain').evaluate(element => element.clientHeight)).toBeGreaterThan(height + 300);
+  const expandedHeight = await page.locator('.candy-rain').evaluate(element => element.clientHeight);
+  await target.evaluate(element => {
+    const fall = element.getAnimations().find(animation => (animation as CSSAnimation).animationName === 'candy-fall')!;
+    const timing = fall.effect!.getTiming();
+    fall.currentTime = (timing.delay ?? 0) + Number(timing.duration) - 1;
+  });
+  await expect.poll(() => target.evaluate(element => element.getBoundingClientRect().top + scrollY)).toBeGreaterThan(expandedHeight);
+  await expect(target).toHaveCount(1);
+  await target.evaluate(element => element.getAnimations().find(animation => (animation as CSSAnimation).animationName === 'candy-fall')!.finish());
+  await expect(target).toHaveCount(0);
+});
+
+test('dragging on a scrolled page preserves the drop point and continues to the page bottom', async ({ page }) => {
+  await seed(page); await page.setViewportSize({ width: 390, height: 600 });
+  await page.goto('/?view=home');
+  await expect(page.locator('.falling-candy')).toHaveCount(8);
+  const candy = page.locator('.falling-candy').nth(3);
+  const id = await candy.getAttribute('data-candy-id');
+  const target = page.locator(`[data-candy-id="${id}"]`);
+  await target.evaluate((element: HTMLElement) => {
+    // Hold a known page position so pointerdown cannot race a falling sprite.
+    element.style.animation = 'none'; element.style.top = '600px';
+    element.style.left = 'calc(100% - 44px)';
+  });
+  await page.evaluate(() => window.scrollTo(0, 180));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(180);
+  const box = (await target.boundingBox())!;
+  const x = box.x + box.width / 2, y = box.y + box.height / 2;
+  await page.mouse.move(x, y); await page.mouse.down();
+  await expect(target).toHaveClass(/held/);
+  await page.mouse.move(180, 300, { steps: 8 });
+  // A scroll while held must not mix client coordinates with page coordinates.
+  await page.evaluate(() => window.scrollBy(0, 80));
+  await expect.poll(() => page.evaluate(() => scrollY)).toBe(260);
+  await page.mouse.move(210, 340, { steps: 8 });
+  const held = (await target.boundingBox())!;
+  expect(held.x + held.width / 2).toBeCloseTo(210, 0);
+  expect(held.y + held.height / 2).toBeCloseTo(340, 0);
+  await page.mouse.up();
+  await expect(target).not.toHaveClass(/held|popped/);
+  const dropped = (await target.boundingBox())!;
+  expect(dropped.x + dropped.width / 2).toBeCloseTo(210, 0);
+  expect(dropped.y + dropped.height / 2).toBeCloseTo(340, 0);
+  await expect.poll(async () => (await target.boundingBox())!.y).toBeGreaterThan(dropped.y + 8);
+  const height = await page.locator('.candy-rain').evaluate(element => element.clientHeight);
+  await target.evaluate(element => {
+    const fall = element.getAnimations().find(animation => (animation as CSSAnimation).animationName === 'candy-fall')!;
+    const timing = fall.effect!.getTiming();
+    fall.pause(); fall.currentTime = Number(timing.duration) - 1;
+  });
+  expect(await target.evaluate(element => element.getBoundingClientRect().top + scrollY)).toBeGreaterThan(height);
 });
 
 test('mouse drag moves a falling candy, resumes at the drop point and does not pop it', async ({ page }) => {

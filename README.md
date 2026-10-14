@@ -19,7 +19,7 @@ On Windows PowerShell with scripts disabled, use `npm.cmd` in place of `npm`. Op
 - Progressive carve/erase, undo, confirmed reset, brush size, and transparent 1024×1024 PNG export. One entry action is shown at a time. File share is preferred where supported; download and an image link provide fallbacks.
 - Versioned local carving/pose persistence, with 24 undo commands and a flattened checkpoint for older strokes. Storage failures leave the experience usable in memory.
 - First-entry “Trick or Treat” transition and quick return, browser Back/Forward, and one continuous audio player with a folder-based shuffle playlist, mute and blocked-playback handling.
-- Full-square original backyard art, candy falling across the whole screen that can be dragged with mouse or touch, brightly glowing rare gold candy, dog/moon/gate/lights/headphone hotspots, scene signs and a subtle ghost. Pumpkin return and sound controls stay fixed at the bottom left/right.
+- Full-square original backyard art, candy falling from the top to the bottom of the whole page that can be dragged with mouse or touch, brightly glowing rare gold candy, dog/moon/gate/lights/headphone hotspots, scene signs and a subtle ghost. Candy stays attached to the page while scrolling; pumpkin return and sound controls stay fixed at the bottom left/right.
 - Configurable date, Cairo time, countdown, maps, WhatsApp and playlist links; keyboard, reduced-motion and WebGL fallbacks.
 
 All copy, event details, destinations, media paths and interaction tuning live in [src/config/siteContent.ts](src/config/siteContent.ts). The original selected artwork and reference photos remain in `assets/`. Artwork is never cropped to hide or alter the dog's shorter left front leg.

@@ -1,13 +1,25 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { siteContent as c } from '../config/siteContent';
 import { DraggableCandy, type Candy } from './DraggableCandy';
 
 export function CandyRain({ reduced, onSecret }: { reduced: boolean; onSecret: (message: string) => void }) {
   const [candies, setCandies] = useState<Candy[]>([]);
   const [hidden, setHidden] = useState(document.hidden);
+  const layer = useRef<HTMLDivElement>(null);
   const next = useRef(0);
   const timers = useRef(new Set<ReturnType<typeof setTimeout>>());
   const max = window.innerWidth < 640 ? c.tuning.maxCandiesMobile : c.tuning.maxCandiesDesktop;
+
+  useLayoutEffect(() => {
+    const element = layer.current!;
+    const measure = () => element.style.setProperty('--rain-height', `${element.clientHeight}px`);
+    measure();
+    // Follow page layout changes, including fonts and responsive content. Scrolling
+    // does not change this layer's size or restart any candy's fall.
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   const make = (existing: Candy[], initial = false): Candy => {
     const gold = existing.filter(candy => candy.gold && !candy.popped).length < c.tuning.rareCandyMaxConcurrent && Math.random() < c.tuning.rareCandyChancePerSpawn;
@@ -51,7 +63,7 @@ export function CandyRain({ reduced, onSecret }: { reduced: boolean; onSecret: (
     const timer = setTimeout(() => { timers.current.delete(timer); recycle(candy.id); }, c.tuning.candyPopMs);
     timers.current.add(timer);
   };
-  return <div className={`candy-rain ${hidden ? 'paused' : ''} ${reduced ? 'reduced' : ''}`}>
+  return <div ref={layer} className={`candy-rain ${hidden ? 'paused' : ''} ${reduced ? 'reduced' : ''}`}>
     {candies.map((candy, index) => <DraggableCandy key={candy.id} candy={candy} index={index} onPop={pop} onRecycle={recycle} />)}
   </div>;
 }

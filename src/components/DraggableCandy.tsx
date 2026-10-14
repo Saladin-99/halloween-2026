@@ -14,14 +14,16 @@ export function DraggableCandy({ candy, index, onPop, onRecycle }: {
   const restartFrame = useRef(0);
 
   const resumeFromDrop = (element: HTMLButtonElement) => {
+    const layer = element.parentElement!;
+    const bounds = layer.getBoundingClientRect();
     const rect = element.getBoundingClientRect();
-    const left = rect.left + rect.width / 2 - 22;
-    const top = rect.top + rect.height / 2 - 22;
+    const left = rect.left + rect.width / 2 - bounds.left - 22;
+    const top = rect.top + rect.height / 2 - bounds.top - 22;
     const transform = getComputedStyle(element).transform;
     const matrix = new DOMMatrixReadOnly(transform === 'none' ? undefined : transform);
     const angle = Math.atan2(matrix.b, matrix.a) * 180 / Math.PI;
-    const distance = window.innerHeight - top + 80;
-    const speed = (window.innerHeight + 140) / candy.duration;
+    const distance = layer.clientHeight - top + 80;
+    const speed = (layer.clientHeight + 140) / candy.duration;
 
     // Rebase the existing CSS fall at the drop point, preserving its current rotation.
     // Pointer moves only update a transform; React never renders for each move.
@@ -29,12 +31,12 @@ export function DraggableCandy({ candy, index, onPop, onRecycle }: {
     element.style.left = `${left}px`; element.style.top = `${top}px`;
     element.style.translate = 'none'; element.style.transform = `rotate(${angle}deg)`;
     element.style.setProperty('--fall-start', '0px');
-    element.style.setProperty('--fall-distance', `${distance}px`);
+    element.style.setProperty('--fall-distance', `calc(var(--rain-height) - ${top}px + 80px)`);
     element.style.setProperty('--duration', `${Math.max(0.6, distance / speed)}s`);
     element.style.setProperty('--delay', '0s');
     element.style.setProperty('--start-angle', `${angle}deg`);
     element.style.setProperty('--end-angle', `${angle + 205}deg`);
-    element.style.setProperty('--drift', `${Math.max(-left, Math.min(candy.drift, window.innerWidth - 44 - left))}px`);
+    element.style.setProperty('--drift', `${Math.max(-left, Math.min(candy.drift, layer.clientWidth - 44 - left))}px`);
     cancelAnimationFrame(restartFrame.current);
     restartFrame.current = requestAnimationFrame(() => {
       restartFrame.current = 0;
@@ -66,32 +68,36 @@ export function DraggableCandy({ candy, index, onPop, onRecycle }: {
   const down = (event: PointerEvent<HTMLButtonElement>) => {
     if (event.button !== 0 || candy.popped || drag.current) return;
     const element = event.currentTarget;
+    // Own the gesture before the artwork underneath can begin a native image drag.
+    event.preventDefault();
     if (restartFrame.current) {
       cancelAnimationFrame(restartFrame.current); restartFrame.current = 0;
       element.style.animation = ''; element.style.transform = '';
     }
     element.classList.add('held');
     const rect = element.getBoundingClientRect();
+    const bounds = element.parentElement!.getBoundingClientRect();
     suppressClick.current = false;
-    drag.current = { pointer: event.pointerId, x: event.clientX, y: event.clientY, centerX: rect.left + rect.width / 2, centerY: rect.top + rect.height / 2, moved: false };
+    drag.current = { pointer: event.pointerId, x: event.pageX, y: event.pageY, centerX: rect.left + rect.width / 2 - bounds.left, centerY: rect.top + rect.height / 2 - bounds.top, moved: false };
     element.setPointerCapture(event.pointerId);
   };
   const move = (event: PointerEvent<HTMLButtonElement>) => {
     const active = drag.current;
     if (!active || active.pointer !== event.pointerId) return;
-    const dx = event.clientX - active.x, dy = event.clientY - active.y;
+    const dx = event.pageX - active.x, dy = event.pageY - active.y;
     if (!active.moved && Math.hypot(dx, dy) < c.tuning.candyDragThresholdPx) return;
     active.moved = true; event.preventDefault();
     event.currentTarget.classList.add('was-dragged');
-    const x = Math.max(22 - active.centerX, Math.min(dx, window.innerWidth - 22 - active.centerX));
-    const y = Math.max(22 - active.centerY, Math.min(dy, window.innerHeight - 22 - active.centerY));
+    const layer = event.currentTarget.parentElement!;
+    const x = Math.max(22 - active.centerX, Math.min(dx, layer.clientWidth - 22 - active.centerX));
+    const y = Math.max(22 - active.centerY, Math.min(dy, layer.clientHeight - 22 - active.centerY));
     event.currentTarget.style.translate = `${x}px ${y}px`;
   };
 
   return <button ref={button}
     data-candy-id={candy.id}
     className={`falling-candy ${candy.gold ? 'gold-candy' : ''} ${candy.popped ? 'popped' : ''}`}
-    style={{ '--x': candy.x, '--duration': `${candy.duration}s`, '--drift': `${candy.drift}px`, '--delay': `${candy.delay}s`, '--size': `${candy.size}px`, '--rest-y': `${15 + (index % 4) * 22}vh` } as CSSProperties}
+    style={{ '--x': candy.x, '--duration': `${candy.duration}s`, '--drift': `${candy.drift}px`, '--delay': `${candy.delay}s`, '--size': `${candy.size}px`, '--rest-y': `${15 + (index % 4) * 22}%` } as CSSProperties}
     aria-label={candy.gold ? c.copy.environment.goldCandyHint : c.copy.environment.candyHint}
     title={c.copy.environment.candyInstruction}
     onPointerDown={down} onPointerMove={move}
